@@ -13,6 +13,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
+import com.betul.productmanagement.dto.RestResponseDTO;
+import com.betul.productmanagement.dto.UserResponseDTO;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,34 +28,65 @@ public class UserController {
     private final JwtUtil jwtUtil; //token oluşturma doğrulama
 
 
-
-    // Register endpoint
+    //-----------------------------------------------------------
+    //bu alttaki kısımda önceden saçma olarak user nesnesi controller manuel oluşturuyordu, şimdi RegisterRequest alıyor
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<RestResponseDTO<UserResponseDTO>> registerUser(
+            @Valid @RequestBody RegisterRequest request) {
+
         try {
-            User user = new User();
-            user.setName(request.getName());
-            user.setEmail(request.getEmail());
-            user.setPasswordHash(request.getPassword());
-            User savedUser = userService.registerUser(user);
-            return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
+            // Servis artık UserResponseDTO döndürüyor
+            UserResponseDTO dto = userService.registerUser(request);
+
+            // RestResponse içine sarıyoruz ve tarih ekliyoruz
+            RestResponseDTO<UserResponseDTO> response = new RestResponseDTO<>(
+                    true,
+                    "User registered successfully",
+                    dto,
+                    LocalDateTime.now()  // Tarih burada ekleniyor
+            );
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            RestResponseDTO<UserResponseDTO> response = new RestResponseDTO<>(
+                    false,
+                    e.getMessage(),
+                    null,
+                    LocalDateTime.now()
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
-    // Login endpoint
+    //-------------------------------------------------------------------------------------------------
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<RestResponseDTO<AuthResponse>> login(
+            @Valid @RequestBody LoginRequest request) {
         try {
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    request.getEmail(), request.getPassword());
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
             authenticationManager.authenticate(authToken);
+
             String token = jwtUtil.generateToken(request.getEmail());
-            return ResponseEntity.ok(new AuthResponse(token));
+
+            RestResponseDTO<AuthResponse> response = new RestResponseDTO<>(
+                    true,
+                    "Login successful",
+                    new AuthResponse(token),
+                    LocalDateTime.now()
+            );
+
+            return ResponseEntity.ok(response);
+
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            RestResponseDTO<AuthResponse> response = new RestResponseDTO<>(
+                    false,
+                    "Invalid email or password",
+                    null,
+                    LocalDateTime.now()
+            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
 }
-

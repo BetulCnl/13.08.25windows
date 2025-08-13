@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "products")//TODO: buraya name üxerinden index ekle
+@Table(name = "products")  //TODO: buraya name üxerinden index ekle
 public class Product {
 
     @Id //idnin primary key olduğunu benersiz olduğunu belirtmek için kullandık, kullanmamız lazım

@@ -3,6 +3,7 @@ package com.betul.productmanagement.service;
 import com.betul.productmanagement.entity.CartItem;
 import com.betul.productmanagement.entity.Product;
 import com.betul.productmanagement.entity.User;
+import com.betul.productmanagement.exception.InvalidQuantityException;
 import com.betul.productmanagement.repository.CartItemRepository;
 import com.betul.productmanagement.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,15 +26,21 @@ public class CartService {
     @Transactional
     public CartItem addItem(User user, Long productId, int quantity) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-        if (quantity < 1) throw new RuntimeException("Quantity must be at least 1");
-        if (quantity > product.getStock()) throw new RuntimeException("Quantity exceeds stock");
+                .orElseThrow(() -> new InvalidQuantityException("Product not found"));
+
+        if (quantity < 1 || quantity > product.getStock()) {
+            throw new InvalidQuantityException(
+                    "Quantity must be at least 1 and at most " + product.getStock()
+            );
+        }
 
         return cartItemRepository.findByUserIdAndProductId(user.getId(), productId)
                 .map(existing -> {
                     int newQty = existing.getQuantity() + quantity;
                     if (newQty > product.getStock()) {
-                        throw new RuntimeException("Quantity exceeds stock");
+                        throw new InvalidQuantityException(
+                                "Quantity exceeds available stock (" + product.getStock() + ")"
+                        );
                     }
                     existing.setQuantity(newQty);
                     return cartItemRepository.save(existing);
@@ -51,9 +58,15 @@ public class CartService {
     @Transactional
     public CartItem updateQuantity(User user, Long cartItemId, int quantity) {
         CartItem item = cartItemRepository.findByIdAndUserId(cartItemId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Cart item not found"));
-        if (quantity < 1) throw new RuntimeException("Quantity must be at least 1");
-        if (quantity > item.getProduct().getStock()) throw new RuntimeException("Quantity exceeds stock");
+                .orElseThrow(() -> new InvalidQuantityException("Cart item not found"));
+
+        int stock = item.getProduct().getStock();
+        if (quantity < 1 || quantity > stock) {
+            throw new InvalidQuantityException(
+                    "Quantity must be at least 1 and at most " + stock
+            );
+        }
+
         item.setQuantity(quantity);
         return cartItemRepository.save(item);
     }
@@ -61,7 +74,7 @@ public class CartService {
     @Transactional
     public void removeItem(User user, Long cartItemId) {
         CartItem item = cartItemRepository.findByIdAndUserId(cartItemId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Cart item not found"));
+                .orElseThrow(() -> new InvalidQuantityException("Cart item not found"));
         cartItemRepository.delete(item);
     }
 
@@ -69,4 +82,4 @@ public class CartService {
     public void clearCart(User user) {
         cartItemRepository.deleteByUser(user);
     }
-} 
+}
