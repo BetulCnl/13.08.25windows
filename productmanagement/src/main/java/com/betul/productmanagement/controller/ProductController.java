@@ -1,5 +1,6 @@
 package com.betul.productmanagement.controller;
 
+import com.betul.productmanagement.dto.ProductCreateDTO;
 import com.betul.productmanagement.entity.Product;
 import com.betul.productmanagement.service.ProductService;
 import jakarta.validation.Valid;
@@ -9,8 +10,6 @@ import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
@@ -18,36 +17,25 @@ public class ProductController {
 
     private final ProductService productService;
 
-    // Pagination ve opsiyonel kategori ve fiyat filtresi ile ürün listeleme
+    // Tüm ürünleri listele
     @GetMapping
     public ResponseEntity<Page<Product>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice) {
+            @RequestParam(defaultValue = "5") int size) {
 
-        Page<Product> products;
-
-        if (category != null && !category.isEmpty() && minPrice != null && maxPrice != null) {
-            products = productService.filterByCategoryAndPrice(category, minPrice, maxPrice, page, size);
-        } else if (minPrice != null && maxPrice != null) {
-            products = productService.filterByPrice(minPrice, maxPrice, page, size);
-        } else if (category != null && !category.isEmpty()) {
-            products = productService.findByCategoryName(category, page, size);
-        } else {
-            products = productService.getAllProducts(page, size);
-        }
+        Page<Product> products = productService.getAllProducts(page, size);
         return ResponseEntity.ok(products);
     }
 
-    // İsim ile arama
+    // İsim ile ürün ara
     @GetMapping("/search")
     public ResponseEntity<Page<Product>> searchByName(
             @RequestParam String name,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(productService.searchByName(name, page, size));
+
+        Page<Product> products = productService.searchByName(name, page, size);
+        return ResponseEntity.ok(products);
     }
 
     // ID ile ürün getir
@@ -58,28 +46,15 @@ public class ProductController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Ürün ekle
+    // Ürün ekle (DTO kullanılıyor)
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Product> addProduct(@Valid @RequestBody Product product) {
-        Product saved = productService.saveProduct(product);
+    public ResponseEntity<Product> addProduct(@Valid @RequestBody ProductCreateDTO dto) {
+        Product saved = productService.saveProduct(dto);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    // Ürün güncelle
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id,
-                                                 @Valid @RequestBody Product product) {
-        return productService.getProductById(id)
-                .map(existing -> {
-                    product.setId(id);
-                    Product updated = productService.saveProduct(product);
-                    return ResponseEntity.ok(updated);
-                }).orElse(ResponseEntity.notFound().build());
-    }
-
-    // Ürün sil
+    // ID ile ürün sil
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
@@ -91,4 +66,3 @@ public class ProductController {
         }
     }
 }
-

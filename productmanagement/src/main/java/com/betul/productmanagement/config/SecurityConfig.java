@@ -62,17 +62,26 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html").permitAll() // ← ana sayfa izinli
-                        //-------------------------------
-                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        //ürünleri listeleme (GET) herkese açık, ama ekleme/güncelleme/şifreli işlemler JWT ile korumalı
-                        .requestMatchers("/api/auth/**").permitAll() // login/register
+                        // Static kaynaklar (JS, CSS, images vs.)
+                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+
+                        // HTML dosyaları
+                        .requestMatchers("/index.html").permitAll()
+                        .requestMatchers("/login.html").permitAll()
+                        .requestMatchers("/register.html").permitAll()
+                        .requestMatchers("/products.html").permitAll()
+
+                        // API endpointleri
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/products/**").permitAll()
+
+                        // H2 Console
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll() // static
-                        .anyRequest().authenticated() // diğer tüm API’ler
+
+                        // Geri kalan her şey girişli kullanıcı için
+                        .anyRequest().authenticated()
                 )
-                //BU SATIR H2 konsolunu kullanabilmek için gerekli
-                .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 için
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

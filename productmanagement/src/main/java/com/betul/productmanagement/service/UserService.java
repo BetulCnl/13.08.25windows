@@ -14,6 +14,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
 
+//bu service UserService: kullanıcı verisi oluşturma ve yönetme işlemi yapar.
+//kullanıcı kayıt işlemleri, kullanıcı bilgilerini bulma ve DTO dönüşümleri gibi işlemleri içerir.
+
     private final UserRepository userRepository;
     private final UserMapper userMapper; // Mapper injection
 
@@ -39,8 +42,6 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 }
-
-
 
 //[ Client / Frontend ]
 //         |

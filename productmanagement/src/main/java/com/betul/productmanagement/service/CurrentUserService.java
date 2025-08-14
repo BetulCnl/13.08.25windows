@@ -7,6 +7,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+//UserCurrentService: Oturum açmış kullanıcının bilgilerini alır.
+//Bu servis, güvenlik bağlamından (SecurityContext) oturum açmış kullanıcının kimliğini alır ve bu kimliğe göre kullanıcı veritabanından kullanıcı bilgilerini
+//bulur. Eğer kullanıcı bulunamazsa veya oturum açılmamışsa, bir hata fırlatır.
+//Bu servis, genellikle kullanıcı bilgilerine erişim gerektiren işle
+
+//yani zaten JWT ile kimlik doğrulaması yapılmış bir kullanıcı için kullanılır.
+
+
+
 @Service
 @RequiredArgsConstructor
 public class CurrentUserService {
@@ -21,4 +30,4 @@ public class CurrentUserService {
         return userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
-} 
+}

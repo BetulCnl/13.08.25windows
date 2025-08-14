@@ -4,6 +4,7 @@ import com.betul.productmanagement.dto.AuthResponse;
 import com.betul.productmanagement.dto.LoginRequest;
 import com.betul.productmanagement.dto.RegisterRequest;
 import com.betul.productmanagement.entity.User;
+import com.betul.productmanagement.repository.UserRepository;
 import com.betul.productmanagement.security.JwtUtil;
 import com.betul.productmanagement.service.UserService;
 import jakarta.validation.Valid;
@@ -26,7 +27,7 @@ public class UserController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager; //email şifre eşleşmesi kontrolü
     private final JwtUtil jwtUtil; //token oluşturma doğrulama
-
+    private final UserRepository userRepository;
 
     //-----------------------------------------------------------
     //bu alttaki kısımda önceden saçma olarak user nesnesi controller manuel oluşturuyordu, şimdi RegisterRequest alıyor
@@ -61,8 +62,7 @@ public class UserController {
 
     //-------------------------------------------------------------------------------------------------
     @PostMapping("/login")
-    public ResponseEntity<RestResponseDTO<AuthResponse>> login(
-            @Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         try {
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
@@ -70,23 +70,17 @@ public class UserController {
 
             String token = jwtUtil.generateToken(request.getEmail());
 
-            RestResponseDTO<AuthResponse> response = new RestResponseDTO<>(
-                    true,
-                    "Login successful",
-                    new AuthResponse(token),
-                    LocalDateTime.now()
-            );
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-            return ResponseEntity.ok(response);
+            String message = user.getName() + ", welcome, login successful";
+
+            AuthResponse authResponse = new AuthResponse(token, message);
+            return ResponseEntity.ok(authResponse);
 
         } catch (BadCredentialsException e) {
-            RestResponseDTO<AuthResponse> response = new RestResponseDTO<>(
-                    false,
-                    "Invalid email or password",
-                    null,
-                    LocalDateTime.now()
-            );
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthResponse("Invalid email or password"));
         }
     }
 }
