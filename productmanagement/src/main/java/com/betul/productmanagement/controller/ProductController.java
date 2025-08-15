@@ -21,9 +21,10 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<Page<Product>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false) String category) {
 
-        Page<Product> products = productService.getAllProducts(page, size);
+        Page<Product> products = productService.getAllProducts(page, size, category);
         return ResponseEntity.ok(products);
     }
 
@@ -32,7 +33,7 @@ public class ProductController {
     public ResponseEntity<Page<Product>> searchByName(
             @RequestParam String name,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "5") int size) {
 
         Page<Product> products = productService.searchByName(name, page, size);
         return ResponseEntity.ok(products);

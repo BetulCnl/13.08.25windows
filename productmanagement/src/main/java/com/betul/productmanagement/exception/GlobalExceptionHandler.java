@@ -30,4 +30,6 @@ public class GlobalExceptionHandler {
         error.put("error", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
-} 
+}
+
+//TODO:here hata özelleştirmek istediğimde burdan yapıcam
