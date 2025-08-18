@@ -109,14 +109,23 @@
       });
 
       if (res.ok) {
-        alert('Ürün sepete eklendi!');
+        alert('Ürün sepete eklendi! Sepete yönlendiriliyorsunuz.');
+        window.location.href = 'cart.html';
       } else {
-        const error = await res.json();
-        alert(`Hata: ${error.message || 'Bir sorun oluştu.'}`);
+        // Try to get more specific error from backend
+        let errorMessage = 'Bir sorun oluştu.';
+        try {
+          const error = await res.json();
+          // Spring's default error structure has 'error' and 'message' fields
+          errorMessage = error.message || error.error || JSON.stringify(error);
+        } catch (e) {
+          errorMessage = res.statusText; // Fallback to status text if no JSON body
+        }
+        alert(`Hata (${res.status}): ${errorMessage}`);
       }
     } catch (err) {
       console.error('Sepete ekleme hatası:', err);
-      alert('Bir hata oluştu.');
+      alert('Bir ağ hatası veya başka bir sorun oluştu.');
     }
   }
 

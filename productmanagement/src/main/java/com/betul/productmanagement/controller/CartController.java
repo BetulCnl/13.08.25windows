@@ -1,8 +1,8 @@
 package com.betul.productmanagement.controller;
 
+import com.betul.productmanagement.dto.CartItemDTO;
 import com.betul.productmanagement.dto.CartItemRequest;
 import com.betul.productmanagement.dto.UpdateQuantityRequest;
-import com.betul.productmanagement.entity.CartItem;
 import com.betul.productmanagement.entity.User;
 import com.betul.productmanagement.service.CartService;
 import com.betul.productmanagement.service.CurrentUserService;
@@ -17,29 +17,29 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
-@PreAuthorize("isAuthenticated()")
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class CartController {
 
     private final CartService cartService;
     private final CurrentUserService currentUserService;
 
     @GetMapping
-    public ResponseEntity<List<CartItem>> getCart() {
+    public ResponseEntity<List<CartItemDTO>> getCart() {
         User user = currentUserService.getCurrentUserOrThrow();
         return ResponseEntity.ok(cartService.getCartItems(user));
     }
 
     @PostMapping
-    public ResponseEntity<CartItem> addItem(@Valid @RequestBody CartItemRequest request) {
+    public ResponseEntity<CartItemDTO> addItem(@Valid @RequestBody CartItemRequest request) {
         User user = currentUserService.getCurrentUserOrThrow();
-        CartItem item = cartService.addItem(user, request.getProductId(), request.getQuantity());
+        CartItemDTO item = cartService.addItem(user, request.getProductId(), request.getQuantity());
         return ResponseEntity.ok(item);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CartItem> updateQuantity(@PathVariable Long id, @Valid @RequestBody UpdateQuantityRequest request) {
+    public ResponseEntity<CartItemDTO> updateQuantity(@PathVariable Long id, @Valid @RequestBody UpdateQuantityRequest request) {
         User user = currentUserService.getCurrentUserOrThrow();
-        CartItem item = cartService.updateQuantity(user, id, request.getQuantity());
+        CartItemDTO item = cartService.updateQuantity(user, id, request.getQuantity());
         return ResponseEntity.ok(item);
     }
 

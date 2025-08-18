@@ -70,10 +70,12 @@ public class SecurityConfig {
                         .requestMatchers("/login.html").permitAll()
                         .requestMatchers("/register.html").permitAll()
                         .requestMatchers("/products.html").permitAll()
+                        .requestMatchers("/cart.html").permitAll()
 
                         // API endpointleri
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
+                        .requestMatchers("/api/cart/**").hasAnyRole("USER", "ADMIN")
 
                         // H2 Console
                         .requestMatchers("/h2-console/**").permitAll()

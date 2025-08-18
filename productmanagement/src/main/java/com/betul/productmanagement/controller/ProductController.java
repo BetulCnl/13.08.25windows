@@ -17,6 +17,7 @@ public class ProductController {
 
     private final ProductService productService;
 
+
     // Tüm ürünleri listele
     @GetMapping
     public ResponseEntity<Page<Product>> getAllProducts(

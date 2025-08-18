@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Order {
+public class Order {//FeignClient
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,6 +33,12 @@ public class Order {
     //tek bir siparişte birden fazla item sipariş edebiliriz one to many tek oturum to many sipariş item vermek
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<OrderItem> items = new ArrayList<>();
+
+    //TODO: orderStatus ekle: PENDING, CANCELLED, COMPLETED, FAILED
+    //TODO: İhtiyaçlar: purchase sayfası olacak. purchase sayfasında iki buton, biri success diğeri fail ödeme geçmek.
+    //TODO: myOrders sayfası olacak. orda siparişlerin listelenecek.
+    //TODO: PaymentTransaction entitysi ekle, bu entity siparişin durumunu tutacak. status: Success, Failed, Pending
+    //TODO: payment işlemini ayrı bir payment management microserviceinde yapacağız feign client ile.
 }
 
 //cascade = CascadeType.ALL (order üzerinde yaptığımız değişiklikler bağlantılı olduğu orderitema da yansır

@@ -35,6 +35,8 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+
+    //cacheleme için buraya debug eklemiştik
     // Tüm ürünleri listele (sayfalama opsiyonel)
     @Cacheable("products")
     public Page<Product> getAllProducts(int page, int size, String categoryName) {

@@ -1,5 +1,7 @@
 package com.betul.productmanagement.service;
 
+import com.betul.productmanagement.Mapper.CartMapper;
+import com.betul.productmanagement.dto.CartItemDTO;
 import com.betul.productmanagement.entity.CartItem;
 import com.betul.productmanagement.entity.Product;
 import com.betul.productmanagement.entity.User;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,15 +25,17 @@ public class CartService {
     /**
      * Kullanıcının sepetindeki ürünleri listeler.
      */
-    public List<CartItem> getCartItems(User user) {
-        return cartItemRepository.findByUser(user);
+    public List<CartItemDTO> getCartItems(User user) {
+        return cartItemRepository.findByUser(user).stream()
+                .map(CartMapper::toCartItemDTO)
+                .collect(Collectors.toList());
     }
 
     /**
      * Sepete ürün ekler. Eğer ürün zaten varsa miktarını artırır.
      */
     @Transactional
-    public CartItem addItem(User user, Long productId, int quantity) {
+    public CartItemDTO addItem(User user, Long productId, int quantity) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new InvalidQuantityException("Ürün bulunamadı."));
 
@@ -40,7 +45,7 @@ public class CartService {
             );
         }
 
-        return cartItemRepository.findByUserIdAndProductId(user.getId(), productId)
+        CartItem cartItem = cartItemRepository.findByUserIdAndProductId(user.getId(), productId)
                 .map(existing -> {
                     int newQty = existing.getQuantity() + quantity;
                     if (newQty > product.getStock()) {
@@ -59,13 +64,14 @@ public class CartService {
                             .build();
                     return cartItemRepository.save(newItem);
                 });
+        return CartMapper.toCartItemDTO(cartItem);
     }
 
     /**
      * Sepetteki bir ürünün miktarını günceller.
      */
     @Transactional
-    public CartItem updateQuantity(User user, Long cartItemId, int quantity) {
+    public CartItemDTO updateQuantity(User user, Long cartItemId, int quantity) {
         CartItem item = cartItemRepository.findByIdAndUserId(cartItemId, user.getId())
                 .orElseThrow(() -> new InvalidQuantityException("Sepet öğesi bulunamadı."));
 
@@ -77,7 +83,7 @@ public class CartService {
         }
 
         item.setQuantity(quantity);
-        return cartItemRepository.save(item);
+        return CartMapper.toCartItemDTO(cartItemRepository.save(item));
     }
 
     /**

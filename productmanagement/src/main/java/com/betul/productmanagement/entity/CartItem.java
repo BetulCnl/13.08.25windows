@@ -56,4 +56,6 @@ public class CartItem {
     //quantity sepetteki aynı olan ürün sayısını mı belirtiyor yoksa,
     //sepette varolan tüm ürünlerin sayısını mı anlamıyorum
     //sepette aynı olan ürünleri mesela 2 telefon bunu ayrı ayrı satırlar olarak göstermiyor 2 telefon diye gösteriyor.
-} 
+}
+
+//KISACASI CARTIREM ENTITYSİ HANGİ KULLANICININ HANGİ ÜRÜNÜNÜN KAÇ ADET OLDUĞUNU TUTUYOR
