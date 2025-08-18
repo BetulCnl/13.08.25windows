@@ -1,5 +1,6 @@
 package com.betul.productmanagement.service;
 
+import com.betul.productmanagement.enums.OrderStatus;
 import com.betul.productmanagement.Mapper.OrderMapper;
 import com.betul.productmanagement.dto.OrderDTO;
 import com.betul.productmanagement.entity.*;
@@ -39,7 +40,7 @@ public class OrderService {
         Order order = new Order();
         order.setUser(user);
         order.setCreatedAt(Instant.now());
-        order.setOrderStatus(Order.OrderStatus.PENDING); // Set initial status
+        order.setOrderStatus(OrderStatus.PENDING); // Set initial status
         order.setTotalAmount(BigDecimal.ZERO); // Will be calculated
 
         // Pre-calculate total to avoid saving order twice
