@@ -1,6 +1,7 @@
 package com.betul.productmanagement.controller;
 
 import com.betul.productmanagement.entity.Order;
+import com.betul.productmanagement.dto.OrderDTO;
 import com.betul.productmanagement.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,8 +21,8 @@ public class AdminOrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public ResponseEntity<Page<Order>> listAll(@RequestParam(defaultValue = "0") int page,
-                                               @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<Page<OrderDTO>> listAll(@RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(orderService.listAllOrders(page, size));
     }
 } 

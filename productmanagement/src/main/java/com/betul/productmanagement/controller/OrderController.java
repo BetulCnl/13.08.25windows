@@ -1,6 +1,6 @@
 package com.betul.productmanagement.controller;
 
-import com.betul.productmanagement.entity.Order;
+import com.betul.productmanagement.dto.OrderDTO;
 import com.betul.productmanagement.entity.User;
 import com.betul.productmanagement.service.CurrentUserService;
 import com.betul.productmanagement.service.OrderService;
@@ -21,24 +21,24 @@ public class OrderController {
     private final CurrentUserService currentUserService;
 
     @PostMapping
-    public ResponseEntity<Order> checkout() {
+    public ResponseEntity<OrderDTO> checkout() {
         User user = currentUserService.getCurrentUserOrThrow();
-        Order order = orderService.checkout(user);
+        OrderDTO order = orderService.checkout(user);
         return ResponseEntity.ok(order);
     }
 
     @GetMapping
-    public ResponseEntity<Page<Order>> listMyOrders(@RequestParam(defaultValue = "0") int page,
-                                                    @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<Page<OrderDTO>> listMyOrders(@RequestParam(defaultValue = "0") int page,
+                                                       @RequestParam(defaultValue = "10") int size) {
         User user = currentUserService.getCurrentUserOrThrow();
         return ResponseEntity.ok(orderService.listUserOrders(user, page, size));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrder(@PathVariable Long id, Authentication authentication) {
-        Order order = orderService.getOrder(id);
+    public ResponseEntity<OrderDTO> getOrder(@PathVariable Long id, Authentication authentication) {
+        OrderDTO order = orderService.getOrder(id);
         User current = currentUserService.getCurrentUserOrThrow();
-        boolean isOwner = order.getUser().getId().equals(current.getId());
+        boolean isOwner = order.getUserId().equals(current.getId());
         boolean isAdmin = authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         if (!isOwner && !isAdmin) {
             return ResponseEntity.status(403).build();

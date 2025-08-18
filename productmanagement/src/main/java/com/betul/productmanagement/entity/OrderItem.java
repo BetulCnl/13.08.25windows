@@ -17,14 +17,29 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //many orderitem to one order
-    @ManyToOne(optional = false) //optional = false= her orderitem illaki bir ordera bsğlı olmak zorunda
-    @JoinColumn(name = "order_id") //bunu order_items tableında sütun yaptık
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "order_id")
     private Order order;
+
+    // We add productId to keep a reference to the original product,
+    // even if it's deleted from the products table later.
+    private Long productId;
 
     private String productName;
 
-    private BigDecimal unitPrice; //ürünün birim fiyatı
+    private BigDecimal unitPrice;
 
-    private int quantity; // o üründen kaç tane sipariş edilmiş
-} 
+    private int quantity;
+
+    //product id ekle, product entitysi ile ilişki kurma. -> DONE
+    //Neden? Çünkü ürün silinse bile sipariş geçmişinde ürünün ne olduğunu bilmek isteriz.
+    //Ama ürünün fiyatı değişebilir, o yüzden unitPrice'ı burada tutuyoruz.
+    //Bu sayede sipariş anındaki fiyatı korumuş oluyoruz.
+    //productName de aynı şekilde, ürünün adı değişse bile sipariş anındaki adını korumak için.
+    //Bu işleme "snapshotting" denir. Sipariş anının fotoğrafını çekmek gibi.
+    //product idyi de ekleyerek, ürün silinmemişse detayına gidebilme imkanı sunabiliriz.
+}
+
+
+//ŞİMDİ SEPETTE YAPTIĞIMIZ GİBİ DİREKT ENTİTY DÖNMEMEK İÇİN DTO LARI OLUŞTURUCAZ
+//ORDERDTO VE ORDERITEMDTO
