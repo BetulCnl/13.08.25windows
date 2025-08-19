@@ -1,5 +1,6 @@
 package com.betul.productmanagement.entity;
 
+import com.betul.productmanagement.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +20,8 @@ public class OrderItem {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "order_id")
+    @ToString.Exclude //<------------- To avoid infinite recursion in toString
+    @EqualsAndHashCode.Exclude //<------------- To avoid infinite recursion in equals and hashCode
     private Order order;
 
     // We add productId to keep a reference to the original product,
@@ -30,6 +33,9 @@ public class OrderItem {
     private BigDecimal unitPrice;
 
     private int quantity;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus orderStatus;
 
     //product id ekle, product entitysi ile ilişki kurma. -> DONE
     //Neden? Çünkü ürün silinse bile sipariş geçmişinde ürünün ne olduğunu bilmek isteriz.

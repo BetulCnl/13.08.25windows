@@ -109,4 +109,49 @@ public class OrderService {
                 .map(OrderMapper::toOrderDTO)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
     }
+
+    @Transactional(rollbackFor =  RuntimeException.class)
+    public OrderDTO completeOrder(Long orderId, User user) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("User is not authorized to complete this order");
+        }
+
+        if (order.getOrderStatus() != OrderStatus.PENDING) {
+            throw new IllegalStateException("Only PENDING orders can be completed.");
+        }
+
+        order.setOrderStatus(OrderStatus.COMPLETED);
+        Order savedOrder = orderRepository.save(order);
+        return OrderMapper.toOrderDTO(savedOrder);
+    }
+
+    @Transactional
+    public OrderDTO failOrder(Long orderId, User user) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("User is not authorized to fail this order");
+        }
+
+        if (order.getOrderStatus() != OrderStatus.PENDING) {
+            throw new IllegalStateException("Only PENDING orders can be marked as failed.");
+        }
+
+        order.setOrderStatus(OrderStatus.FAILED);
+
+        // Revert stock for each item in the order
+        for (OrderItem item : order.getItems()) {
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found for stock reversal: " + item.getProductName()));
+            product.setStock(product.getStock() + item.getQuantity());
+            productRepository.save(product);
+        }
+
+        Order savedOrder = orderRepository.save(order);
+        return OrderMapper.toOrderDTO(savedOrder);
+    }
 }

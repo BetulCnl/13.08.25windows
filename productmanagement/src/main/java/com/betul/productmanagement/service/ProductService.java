@@ -40,7 +40,7 @@ public class ProductService {
     // Tüm ürünleri listele (sayfalama opsiyonel)
     @Cacheable("products")
     public Page<Product> getAllProducts(int page, int size, String categoryName) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size); //<-----------------
         if (categoryName != null && !categoryName.isBlank()) {
             return productRepository.findByCategory_Name(categoryName, pageable);
         }

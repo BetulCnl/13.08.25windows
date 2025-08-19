@@ -71,6 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/register.html").permitAll()
                         .requestMatchers("/products.html").permitAll()
                         .requestMatchers("/cart.html").permitAll()
+                        .requestMatchers("/purchase.html").permitAll()
 
                         // API endpointleri
                         .requestMatchers("/api/auth/**").permitAll()

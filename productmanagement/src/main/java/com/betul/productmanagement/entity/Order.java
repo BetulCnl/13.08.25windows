@@ -30,21 +30,13 @@ public class Order {
 
     private BigDecimal totalAmount;
 
-    //@Enumerated(EnumType.STRING)
-    //private OrderStatus orderStatus;
-
     @Enumerated(EnumType.STRING) // Enum string olarak DB'ye yazılacak
     private OrderStatus orderStatus;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @ToString.Exclude     //<------------- To avoid infinite recursion in toString
+    @EqualsAndHashCode.Exclude //<------------- To avoid infinite recursion in equals and hashCode
     private List<OrderItem> items = new ArrayList<>();
-
-    //public enum OrderStatus {
-        //PENDING,
-        //COMPLETED,
-        //CANCELLED,
-        //FAILED
-    //}
 
     //TODO: orderStatus ekle: PENDING, CANCELLED, COMPLETED, FAILED
     //TODO: İhtiyaçlar: purchase sayfası olacak. purchase sayfasında iki buton, biri success diğeri fail ödeme geçmek.

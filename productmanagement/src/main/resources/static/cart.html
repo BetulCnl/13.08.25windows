@@ -4,24 +4,45 @@
     <meta charset="UTF-8">
     <title>Sepetim</title>
     <style>
+        body {
+            font-family: sans-serif;
+        }
         table {
             border-collapse: collapse;
             width: 80%;
-            margin: auto;
+            margin: 20px auto;
         }
         th, td {
-            border: 1px solid #333;
-            padding: 8px;
+            border: 1px solid #ccc;
+            padding: 12px;
             text-align: center;
         }
         th {
-            background-color: #eee;
+            background-color: #f2f2f2;
         }
         input[type=number] {
             width: 60px;
+            padding: 5px;
         }
         button {
-            padding: 5px 10px;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        .checkout-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .checkout-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -42,8 +63,16 @@
     </tbody>
 </table>
 
+<div class="checkout-container">
+    <button class="checkout-btn" onclick="checkout()">Ödemeye Geç</button>
+</div>
+
 <script>
     const token = localStorage.getItem('token'); // JWT token
+
+    if (!token) {
+        window.location.href = 'login.html'; // Token yoksa login sayfasına yönlendir
+    }
 
     // Sepet verilerini getir ve tabloya ekle
     async function loadCart() {
@@ -53,33 +82,39 @@
                     'Authorization': 'Bearer ' + token
                 }
             });
+            if (response.status === 401) {
+                 window.location.href = 'login.html';
+            }
             if (!response.ok) throw new Error("Sepet yüklenemedi");
             const cartItems = await response.json();
 
             const tbody = document.getElementById('cartItems');
             tbody.innerHTML = '';
 
+            if (cartItems.length === 0) {
+                document.querySelector('.checkout-btn').disabled = true;
+                document.querySelector('.checkout-btn').style.backgroundColor = 'grey';
+            }
+
             cartItems.forEach(item => {
                 const tr = document.createElement('tr');
-
                 tr.innerHTML = `
                 <td>${item.product.name}</td>
-                <td>${item.product.price}</td>
+                <td>${item.product.price.toFixed(2)} ₺</td>
                 <td>
                     <input type="number" min="1" value="${item.quantity}" onchange="updateQuantity(${item.id}, this.value)">
                 </td>
-                <td>${(item.product.price * item.quantity).toFixed(2)}</td>
+                <td>${(item.product.price * item.quantity).toFixed(2)} ₺</td>
                 <td>
-                    <button onclick="removeItem(${item.id})">Sil</button>
+                    <button class="delete-btn" onclick="removeItem(${item.id})">Sil</button>
                 </td>
             `;
-
                 tbody.appendChild(tr);
             });
 
         } catch (error) {
             console.error(error);
-            alert("Sepet yüklenirken hata oluştu");
+            alert("Sepet yüklenirken hata oluştu: " + error.message);
         }
     }
 
@@ -98,7 +133,7 @@
             loadCart();
         } catch (error) {
             console.error(error);
-            alert("Miktar güncellenirken hata oluştu");
+            alert("Miktar güncellenirken hata oluştu: " + error.message);
         }
     }
 
@@ -115,7 +150,38 @@
             loadCart();
         } catch (error) {
             console.error(error);
-            alert("Ürün silinirken hata oluştu");
+            alert("Ürün silinirken hata oluştu: " + error.message);
+        }
+    }
+
+    // Checkout işlemini yap ve purchase sayfasına yönlendir
+    async function checkout() {
+        if (document.getElementById('cartItems').children.length === 0) {
+            alert("Sepetiniz boş. Lütfen ödeme yapmak için ürün ekleyin.");
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8080/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                const errorMessage = errorData && errorData.message ? errorData.message : "Ödeme işlemi başlatılamadı.";
+                throw new Error(errorMessage);
+            }
+
+            const order = await response.json();
+            window.location.href = `purchase.html?orderId=${order.id}`;
+
+        } catch (error) {
+            console.error(error);
+            alert("Bir hata oluştu: " + error.message);
         }
     }
 
