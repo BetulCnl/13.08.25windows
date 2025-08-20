@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Random;
 
 @Service
@@ -23,7 +24,7 @@ public class PaymentProcessingService {
                 .orderId(request.getOrderId())
                 .amount(request.getAmount())
                 .status(PaymentStatus.PENDING)
-                .createdAt(Instant.now())
+                .createdAt(LocalDateTime.now())
                 .build();
         repository.save(tx);
 
