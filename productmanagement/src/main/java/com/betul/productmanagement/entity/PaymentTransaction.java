@@ -3,6 +3,7 @@ package com.betul.productmanagement.entity;
 
 
 import com.betul.productmanagement.enums.PaymentStatus;
+import com.betul.productmanagement.enums.PaymentType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payment_transactions")
@@ -32,11 +34,10 @@ public class PaymentTransaction {
     private BigDecimal amount;
 
     @Column(nullable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType;
 
     private String paymentGatewayReference;
-
-    @ManyToOne(fetch = FetchType.LAZY) //hangi siparişin (sipariş id si ile) ödemesi olduğunu anlar burdan
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
 }

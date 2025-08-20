@@ -19,11 +19,13 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    //*********************
     @ManyToOne(optional = false)
     @JoinColumn(name = "order_id")
     @ToString.Exclude //<------------- To avoid infinite recursion in toString
     @EqualsAndHashCode.Exclude //<------------- To avoid infinite recursion in equals and hashCode
     @JsonBackReference
+    //*********************** bu kısmı bak
     private Order order;
     // We add productId to keep a reference to the original product,
     // even if it's deleted from the products table later.
