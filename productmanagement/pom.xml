@@ -22,7 +22,24 @@
 		<java.version>21</java.version>
 	</properties>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>2023.0.1</version> <!-- Spring Cloud Sürüm Yöneticisi -->
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 			<dependencies>
+			<!-- OpenFeign Client for Microservice Communication -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-openfeign</artifactId>
+			</dependency>
 			<!-- Spring Data JPA -->
 			<!-- Spring Boot'un Cache (Önbellekleme) mekanizmasını aktive etmek için gerekli olan başlangıç bağımlılığı -->
 		<!-- Cache özelliği, tekrar eden veritabanı isteklerini azaltarak performansı artırır -->

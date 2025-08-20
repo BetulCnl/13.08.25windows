@@ -1,9 +1,6 @@
-package com.betul.productmanagement.entity;
-//bu PaymentTransaction entitysi PaymentStatus'ı kullanacak ve Order'a olan bağlantıyı içerecek.
+package com.betul.paymentmanagement.entity;
 
-
-import com.betul.productmanagement.enums.PaymentStatus;
-import com.betul.productmanagement.enums.PaymentType;
+import com.betul.paymentmanagement.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +23,9 @@ public class PaymentTransaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private Long orderId; // Hangi siparişe ait olduğunu belirtir
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus status;
@@ -36,8 +36,6 @@ public class PaymentTransaction {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Enumerated(EnumType.STRING)
-    private PaymentType paymentType;
+    private String paymentGatewayReference; // Ödeme ağ geçidinden dönen referans
 
-    private String paymentGatewayReference;
 }

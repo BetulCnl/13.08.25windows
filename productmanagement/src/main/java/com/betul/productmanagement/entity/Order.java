@@ -42,10 +42,9 @@ public class Order {
     @EqualsAndHashCode.Exclude //<------------- To avoid infinite recursion in equals and hashCode
     private List<OrderItem> items = new ArrayList<>();
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL) //burada orphanReomoverlar vardı sildim, neden sildiğini unutursan düşün
-    @ToString.Exclude //bu order entitysine ait olan payment transactionları yazdırmamak için
-    @EqualsAndHashCode.Exclude //onetomany altında yazdık BİR SİPARİŞİN BİRDEN ÇOK ÖDEME İŞLEMİ OLABİLİYOR DİYE
-    private List<PaymentTransaction> transactions = new ArrayList<>();
+
+    //BU ORDER DOSYASINDAKİ TRANSACTIONLARIN HEPSİ PRODUCT MANAGEMENT SERVİSİNDE YER ALACAK
+    // SİLDİM BURDAKİ LİSTEYİ
 
     //TODO: orderStatus ekle: PENDING, CANCELLED, COMPLETED, FAILED
     //TODO: İhtiyaçlar: purchase sayfası olacak. purchase sayfasında iki buton, biri success diğeri fail ödeme geçmek.
