@@ -3,6 +3,7 @@ package com.betul.productmanagement.entity;
 import com.betul.productmanagement.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import java.math.BigDecimal;
 
@@ -22,8 +23,8 @@ public class OrderItem {
     @JoinColumn(name = "order_id")
     @ToString.Exclude //<------------- To avoid infinite recursion in toString
     @EqualsAndHashCode.Exclude //<------------- To avoid infinite recursion in equals and hashCode
+    @JsonBackReference
     private Order order;
-
     // We add productId to keep a reference to the original product,
     // even if it's deleted from the products table later.
     private Long productId;

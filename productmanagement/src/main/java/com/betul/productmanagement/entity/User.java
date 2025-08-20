@@ -4,6 +4,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import java.util.List;
+import java.util.ArrayList;
+import com.betul.productmanagement.enums.Role;
+
 
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
@@ -27,12 +32,15 @@ public class User {
     @Column(name = "password_hash") //password_hash adında bir sütun ekliyorum db ye
     private String passwordHash;
 
+    //**************************************
     @Enumerated(EnumType.STRING) //enumu db ye nasıl kaydedeceğini belirtiyor
     private Role role;
+    //**************************************
 
-    public enum Role {
-        USER,
-        ADMIN
-    }//Kullanıcı nesnesinin role alanı bu enum tipinde olduğu için
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference   // parent taraf
+    private List<Order> orders = new ArrayList<>();
+
+   //Kullanıcı nesnesinin role alanı bu enum tipinde olduğu için
 }   //sadece bu iki değerden biri atanabilir.
 

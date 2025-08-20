@@ -5,6 +5,7 @@ import com.betul.productmanagement.dto.UserResponseDTO;
 import com.betul.productmanagement.entity.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+import com.betul.productmanagement.enums.Role;
 
 @Component
 public class UserMapper { // büyük harfle
@@ -20,7 +21,7 @@ public class UserMapper { // büyük harfle
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setRole(User.Role.USER);
+        user.setRole(Role.USER);
         return user;
     }
     public UserResponseDTO toResponseDTO(User user) {

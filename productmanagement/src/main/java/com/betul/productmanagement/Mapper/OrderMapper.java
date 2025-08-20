@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public class OrderMapper {
 
-    public static OrderDTO toOrderDTO(Order order) {
+    public static OrderDTO toOrderDTO(Order order) { // OrderItem -> OrderItemDTO dönüşümünü yapan metot
         if (order == null) {
             return null;
         }

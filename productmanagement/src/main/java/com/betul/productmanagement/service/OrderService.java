@@ -52,12 +52,12 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         // Create OrderItems from CartItems
-        for (CartItem cartItem : cartItems) {
+        for (CartItem cartItem : cartItems) { //sepetteki her bir cartitem için orderitem oluştur
             Product product = cartItem.getProduct();
 
             // Stock validation
-            if (cartItem.getQuantity() > product.getStock()) {
-                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+            if (cartItem.getQuantity() > product.getStock()) { //stoktakinden daha fazla sipariş verilemez
+                throw new RuntimeException("Bu ürün için yetersiz stok: " + product.getName());
             }
 
             // Decrease stock

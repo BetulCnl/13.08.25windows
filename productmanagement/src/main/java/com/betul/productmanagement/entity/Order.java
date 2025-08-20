@@ -8,6 +8,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import com.betul.productmanagement.enums.OrderStatus;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+
 
 
 @Entity
@@ -23,6 +26,7 @@ public class Order {
     private Long id;
 
     @ManyToOne(optional = false)
+    //@JsonManagedReference *DTO KULLANDIĞIM İÇİN BUNA GEREK YOK SİLDİM
     @JoinColumn(name = "user_id")
     private User user;
 
@@ -33,10 +37,15 @@ public class Order {
     @Enumerated(EnumType.STRING) // Enum string olarak DB'ye yazılacak
     private OrderStatus orderStatus;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY) //!!!EAGER yerine LAZY kullanıldı, çünkü order ile ilişkili orderItem'lar çok fazla olabileceğinden ve performans için lazy loading tercih edildi.
     @ToString.Exclude     //<------------- To avoid infinite recursion in toString
     @EqualsAndHashCode.Exclude //<------------- To avoid infinite recursion in equals and hashCode
     private List<OrderItem> items = new ArrayList<>();
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude //bu order entitysine ait olan payment transactionları yazdırmamak için
+    @EqualsAndHashCode.Exclude //onetomany altında yazdık BİR SİPARİŞİN BİRDEN ÇOK ÖDEME İŞLEMİ OLABİLİYOR DİYE
+    private List<PaymentTransaction> transactions = new ArrayList<>();
 
     //TODO: orderStatus ekle: PENDING, CANCELLED, COMPLETED, FAILED
     //TODO: İhtiyaçlar: purchase sayfası olacak. purchase sayfasında iki buton, biri success diğeri fail ödeme geçmek.
