@@ -5,12 +5,33 @@
     <title>Ödeme</title>
 </head>
 <body>
+    <header style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: #f1f1f1; margin-bottom: 20px;">
+        <div id="userInfo"></div>
+        <button onclick="logout()">Çıkış Yap</button>
+    </header>
     <h1>Ödeme Sayfası</h1>
     <p id="order-info">Sipariş ID: ...</p>
     <button onclick="handlePayment(true)">SUCCESS</button>
     <button onclick="handlePayment(false)">FAILED</button>
 
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const userInfo = document.getElementById('userInfo');
+        const userName = localStorage.getItem('userName');
+        const userEmail = localStorage.getItem('userEmail');
+
+        if (userName && userEmail) {
+        userInfo.innerHTML = `<strong>Kullanıcı:</strong> ${userName} (${userEmail})`;
+        }
+    });
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userEmail');
+        window.location.href = 'login.html';
+    }
+
     const token = localStorage.getItem('token');
     const urlParams = new URLSearchParams(window.location.search);
     const orderId = urlParams.get('orderId');

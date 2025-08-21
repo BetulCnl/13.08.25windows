@@ -1,9 +1,14 @@
 package com.betul.productmanagement.service;
 
-import com.betul.productmanagement.enums.OrderStatus;
-import com.betul.productmanagement.Mapper.OrderMapper;
+import com.betul.productmanagement.client.PaymentServiceClient;
 import com.betul.productmanagement.dto.OrderDTO;
+import com.betul.productmanagement.dto.PaymentRequestDTO;
+import com.betul.productmanagement.dto.PaymentResponseDTO;
 import com.betul.productmanagement.entity.*;
+import com.betul.productmanagement.enums.OrderStatus;
+import com.betul.productmanagement.enums.PaymentStatus;
+import com.betul.productmanagement.enums.PaymentType;
+import com.betul.productmanagement.Mapper.OrderMapper;
 import com.betul.productmanagement.repository.CartItemRepository;
 import com.betul.productmanagement.repository.OrderRepository;
 import com.betul.productmanagement.repository.ProductRepository;
@@ -25,9 +30,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderService {
 
-    private final CartItemRepository cartItemRepository; //kullanıcı sepetindeki ürünleri almak ve silmek için
-    private final OrderRepository orderRepository; //siparişleri db ye kaydetmek listelemek getirmek
-    private final ProductRepository productRepository; //ürün stoklarını güncellemek için
+    private final CartItemRepository cartItemRepository;
+    private final OrderRepository orderRepository;
+    private final ProductRepository productRepository;
+    private final PaymentServiceClient paymentServiceClient; // Feign Client'ı ekledik
 
     @Transactional
     public OrderDTO checkout(User user) {
@@ -36,55 +42,54 @@ public class OrderService {
             throw new RuntimeException("Cart is empty");
         }
 
-        // Create and save the Order first to get an ID
+        // 1. Siparişi PENDING durumuyla oluştur
         Order order = new Order();
         order.setUser(user);
         order.setCreatedAt(Instant.now());
-        order.setOrderStatus(OrderStatus.PENDING); // Set initial status
-        order.setTotalAmount(BigDecimal.ZERO); // Will be calculated
+        order.setOrderStatus(OrderStatus.PENDING);
 
-        // Pre-calculate total to avoid saving order twice
         BigDecimal totalAmount = cartItems.stream()
                 .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
         order.setTotalAmount(totalAmount);
-        Order savedOrder = orderRepository.save(order);
 
-        // Create OrderItems from CartItems
-        for (CartItem cartItem : cartItems) { //sepetteki her bir cartitem için orderitem oluştur
+        // Sipariş kalemlerini (OrderItem) oluştur ve stokları düş
+        for (CartItem cartItem : cartItems) {
             Product product = cartItem.getProduct();
-
-            // Stock validation
-            if (cartItem.getQuantity() > product.getStock()) { //stoktakinden daha fazla sipariş verilemez
+            if (cartItem.getQuantity() > product.getStock()) {
                 throw new RuntimeException("Bu ürün için yetersiz stok: " + product.getName());
             }
-
-            // Decrease stock
             product.setStock(product.getStock() - cartItem.getQuantity());
             try {
                 productRepository.save(product);
             } catch (OptimisticLockingFailureException e) {
-                throw new RuntimeException("Concurrent stock update, please retry");
+                throw new RuntimeException("Stok güncelleme hatası, lütfen tekrar deneyin");
             }
-
             OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(savedOrder);
-            orderItem.setProductId(product.getId()); // Set the product ID
-            orderItem.setProductName(product.getName()); // Snapshotting name
-            orderItem.setUnitPrice(product.getPrice()); // Snapshotting price
+            orderItem.setOrder(order);
+            orderItem.setProductId(product.getId());
+            orderItem.setProductName(product.getName());
+            orderItem.setUnitPrice(product.getPrice());
             orderItem.setQuantity(cartItem.getQuantity());
-            savedOrder.getItems().add(orderItem);
+            order.getItems().add(orderItem);
         }
 
-        // Save the order again with the items
-        Order finalOrder = orderRepository.save(savedOrder);
+        Order savedOrder = orderRepository.save(order);
 
-        // Clear cart
-        cartItemRepository.deleteByUser(user);
-
-        return OrderMapper.toOrderDTO(finalOrder);
+        // Sepeti burada TEMİZLEMİYORUZ! Ödeme başarılı olunca temizlenecek.
+        return OrderMapper.toOrderDTO(savedOrder);
     }
+
+    private void revertStock(Order order) {
+        for (OrderItem item : order.getItems()) {
+            productRepository.findById(item.getProductId()).ifPresent(product -> {
+                product.setStock(product.getStock() + item.getQuantity());
+                productRepository.save(product);
+            });
+        }
+    }
+
+    // ... (Diğer metotlar değişmedi)
 
     public Page<OrderDTO> listUserOrders(User user, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -110,7 +115,7 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
     }
 
-    @Transactional(rollbackFor =  RuntimeException.class)
+    @Transactional
     public OrderDTO completeOrder(Long orderId, User user) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -123,7 +128,34 @@ public class OrderService {
             throw new IllegalStateException("Only PENDING orders can be completed.");
         }
 
-        order.setOrderStatus(OrderStatus.COMPLETED);
+        // Ödeme servisine BAŞARILI isteği gönder
+        PaymentRequestDTO paymentRequest = PaymentRequestDTO.builder()
+                .orderId(order.getId())
+                .amount(order.getTotalAmount())
+                .paymentType(PaymentType.PURCHASE)
+                .paymentStatus(PaymentStatus.SUCCESS) // Bu siparişin başarılı olmasını istiyoruz
+                .build();
+
+        try {
+            PaymentResponseDTO paymentResponse = paymentServiceClient.createPayment(paymentRequest);
+            if (paymentResponse.getStatus() == PaymentStatus.SUCCESS) {
+                order.setOrderStatus(OrderStatus.COMPLETED);
+                cartItemRepository.deleteByUser(user); // Sepeti temizle
+            } else {
+                // Ödeme servisi FAILED dönerse (beklenmedik durum), siparişi FAILED yap ve stoğu iade et
+                order.setOrderStatus(OrderStatus.FAILED);
+                revertStock(order);
+            }
+        } catch (Exception e) {
+            // Ödeme servisine ulaşılamazsa, siparişi şimdilik PENDING bırakabilir veya FAILED yapabiliriz.
+            // Kullanıcının tekrar deneyebilmesi için PENDING bırakmak daha iyi olabilir.
+            // Ancak bu durumda stokların durumu kritik hale gelir.
+            // Şimdilik FAILED varsayalım ve stoğu iade edelim.
+            order.setOrderStatus(OrderStatus.FAILED);
+            revertStock(order);
+            throw new RuntimeException("Payment service is currently unavailable. Please try again later.", e);
+        }
+
         Order savedOrder = orderRepository.save(order);
         return OrderMapper.toOrderDTO(savedOrder);
     }
@@ -141,15 +173,24 @@ public class OrderService {
             throw new IllegalStateException("Only PENDING orders can be marked as failed.");
         }
 
-        order.setOrderStatus(OrderStatus.FAILED);
-
-        // Revert stock for each item in the order
-        for (OrderItem item : order.getItems()) {
-            Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found for stock reversal: " + item.getProductName()));
-            product.setStock(product.getStock() + item.getQuantity());
-            productRepository.save(product);
+        // Ödeme servisine BAŞARISIZ isteği gönder
+        PaymentRequestDTO paymentRequest = PaymentRequestDTO.builder()
+                .orderId(order.getId())
+                .amount(order.getTotalAmount())
+                .paymentType(PaymentType.PURCHASE) // veya CANCEL, duruma göre
+                .paymentStatus(PaymentStatus.FAILED) // Bu siparişin başarısız olmasını istiyoruz
+                .build();
+        
+        try {
+            paymentServiceClient.createPayment(paymentRequest);
+        } catch (Exception e) {
+            // Ödeme servisine ulaşılamasa bile siparişi FAILED olarak işaretleyip devam edebiliriz.
+            // Çünkü zaten amacımız bu.
+            System.err.println("Could not contact payment service to mark as FAILED, but proceeding anyway: " + e.getMessage());
         }
+
+        order.setOrderStatus(OrderStatus.FAILED);
+        revertStock(order); // Stokları iade et
 
         Order savedOrder = orderRepository.save(order);
         return OrderMapper.toOrderDTO(savedOrder);

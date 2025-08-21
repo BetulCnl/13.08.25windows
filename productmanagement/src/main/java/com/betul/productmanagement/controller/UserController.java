@@ -75,7 +75,7 @@ public class UserController {
 
             String message = user.getName() + ", welcome, login successful";
 
-            AuthResponse authResponse = new AuthResponse(token, message);
+            AuthResponse authResponse = new AuthResponse(token, message, user.getName(), user.getEmail());
             return ResponseEntity.ok(authResponse);
 
         } catch (BadCredentialsException e) {

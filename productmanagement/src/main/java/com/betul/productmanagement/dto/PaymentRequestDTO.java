@@ -1,5 +1,6 @@
 package com.betul.productmanagement.dto;
 
+import com.betul.productmanagement.enums.PaymentStatus;
 import com.betul.productmanagement.enums.PaymentType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,4 +17,5 @@ public class PaymentRequestDTO {
     private Long orderId;
     private BigDecimal amount;
     private PaymentType paymentType;
+    private PaymentStatus paymentStatus;
 }

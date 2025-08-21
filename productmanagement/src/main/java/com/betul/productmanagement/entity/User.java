@@ -8,7 +8,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.List;
 import java.util.ArrayList;
 import com.betul.productmanagement.enums.Role;
-
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
@@ -39,6 +40,8 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference   // parent taraf
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Order> orders = new ArrayList<>();
 
    //Kullanıcı nesnesinin role alanı bu enum tipinde olduğu için

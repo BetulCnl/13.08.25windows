@@ -37,7 +37,12 @@ public class PaymentProcessingService {
             Thread.currentThread().interrupt();
         }
 
-        boolean paymentSuccess = new Random().nextBoolean();
+        boolean paymentSuccess;
+        if (request.getPaymentStatus() != null) {
+            paymentSuccess = request.getPaymentStatus() == PaymentStatus.SUCCESS;
+        } else {
+            paymentSuccess = new Random().nextBoolean();
+        }
 
         // 3. Sonuca göre transaction'ı güncelle
         tx.setStatus(paymentSuccess ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);

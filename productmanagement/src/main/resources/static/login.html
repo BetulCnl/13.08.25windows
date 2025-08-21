@@ -35,8 +35,10 @@
 
             const data = await response.json();
 
-            // JWT token'ı localStorage'a kaydet
+            // JWT token'ı ve kullanıcı bilgilerini localStorage'a kaydet
             localStorage.setItem('token', data.token);
+            localStorage.setItem('userName', data.name);
+            localStorage.setItem('userEmail', data.email);
 
             // Giriş başarılı → products.html sayfasına yönlendir
             window.location.href = 'products.html';

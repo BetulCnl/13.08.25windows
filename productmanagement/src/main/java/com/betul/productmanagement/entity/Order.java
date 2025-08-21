@@ -8,10 +8,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import com.betul.productmanagement.enums.OrderStatus;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
-
-
 
 @Entity
 @Table(name = "orders")
@@ -46,9 +42,11 @@ public class Order {
     //BU ORDER DOSYASINDAKİ TRANSACTIONLARIN HEPSİ PRODUCT MANAGEMENT SERVİSİNDE YER ALACAK
     // SİLDİM BURDAKİ LİSTEYİ
 
-    //TODO: orderStatus ekle: PENDING, CANCELLED, COMPLETED, FAILED
-    //TODO: İhtiyaçlar: purchase sayfası olacak. purchase sayfasında iki buton, biri success diğeri fail ödeme geçmek.
-    //TODO: PaymentTransaction entitysi ekle, bu entity siparişin durumunu tutacak. status: Success, Failed, Pending
-    //TODO: payment işlemini ayrı bir payment management microserviceinde yapacağız feign client ile.
+    //TODO: orderStatus ekle: PENDING, CANCELLED, COMPLETED, FAILED - TAMAMLANMADI
+    //TODO: USERS VE ORDERS arasında stackoverflow hatası
+    //TODO: User login olurken kullanıcı ismini mailini clienta dön ve headerda bu değerleri göster
+    //TODO: İhtiyaçlar: purchase sayfası olacak. purchase sayfasında iki buton, biri success diğeri fail ödeme geçmek. - TAMAMLANMADI
+    //TODO: PaymentTransaction entitysi ekle, bu entity siparişin durumunu tutacak. status: Success, Failed, Pending - TAMAMLANMADI
+    //TODO: payment işlemini ayrı bir payment management microserviceinde yapacağız feign client ile. - TAMAMLANDI
     //TODO: myOrders sayfası olacak. orda siparişlerin listelenecek.
 }

@@ -1,27 +1,25 @@
 package com.betul.productmanagement.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-
 public class AuthResponse {
     private String token;
     private String message;
+    private String name;
+    private String email;
 
-    public AuthResponse(String token, String message) {
+    public AuthResponse(String token, String message, String name, String email) {
         this.token = token;
         this.message = message;
+        this.name = name;
+        this.email = email;
     }
 
     public AuthResponse(String message) { // hata durumları için
+        this.token = null;
         this.message = message;
+        this.name = null;
+        this.email = null;
     }
-
-    // getter ve setter
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
-
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
 }

@@ -3,6 +3,8 @@ package com.betul.paymentmanagement.dto;
 // Bu PaymentRequestDTO productmanagement servisinden bir ödeme isteği alırken
 //  hangi bilgileri beklediğimizi tanımlayacak.
 
+import com.betul.paymentmanagement.enums.PaymentStatus;
+import com.betul.paymentmanagement.enums.PaymentType;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -11,6 +13,8 @@ import java.math.BigDecimal;
 public class PaymentRequestDTO {
     private Long orderId;
     private BigDecimal amount;
+    private PaymentType paymentType;
+    private PaymentStatus paymentStatus;
 }
 
 // productmanagement servisi, paymentmanagement servisinin sadece ve sadece API "sözleşmesini" bilmelidir.

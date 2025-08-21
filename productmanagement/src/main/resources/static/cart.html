@@ -47,6 +47,10 @@
     </style>
 </head>
 <body>
+<header style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: #f1f1f1; margin-bottom: 20px;">
+  <div id="userInfo"></div>
+  <button onclick="logout()">Çıkış Yap</button>
+</header>
 <h1 style="text-align:center;">Sepetim</h1>
 <table>
     <thead>
@@ -68,6 +72,23 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const userInfo = document.getElementById('userInfo');
+        const userName = localStorage.getItem('userName');
+        const userEmail = localStorage.getItem('userEmail');
+
+        if (userName && userEmail) {
+        userInfo.innerHTML = `<strong>Kullanıcı:</strong> ${userName} (${userEmail})`;
+        }
+    });
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userEmail');
+        window.location.href = 'login.html';
+    }
+
     const token = localStorage.getItem('token'); // JWT token
 
     if (!token) {
@@ -154,34 +175,44 @@
         }
     }
 
-    // Checkout işlemini yap ve purchase sayfasına yönlendir
+    // Checkout işlemini yap ve sonucu bildir
     async function checkout() {
         if (document.getElementById('cartItems').children.length === 0) {
             alert("Sepetiniz boş. Lütfen ödeme yapmak için ürün ekleyin.");
             return;
         }
 
+        const checkoutBtn = document.querySelector('.checkout-btn');
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = 'İşlem Yapılıyor...';
+
         try {
             const response = await fetch('http://localhost:8080/api/orders', {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Content-Type': 'application/json'
+                    'Authorization': 'Bearer ' + token
                 }
             });
 
+            // Cevap başarılı değilse, JSON'dan hata mesajını oku ve fırlat
             if (!response.ok) {
-                const errorData = await response.json().catch(() => null);
-                const errorMessage = errorData && errorData.message ? errorData.message : "Ödeme işlemi başlatılamadı.";
-                throw new Error(errorMessage);
+                const errorResponse = await response.json();
+                // Bizim backend'den gelen hata formatımız { "error": "mesaj" } şeklinde olabilir
+                // veya doğrudan bir mesaj dönebilir. Esnek bir şekilde yakalayalım.
+                const message = errorResponse.error || errorResponse.message || "Bilinmeyen bir hata oluştu.";
+                throw new Error(message);
             }
 
+            // Başarılı cevap
             const order = await response.json();
             window.location.href = `purchase.html?orderId=${order.id}`;
 
         } catch (error) {
-            console.error(error);
-            alert("Bir hata oluştu: " + error.message);
+            console.error('Checkout Hatası:', error);
+            alert(`Bir hata oluştu: ${error.message}`);
+        } finally {
+            checkoutBtn.disabled = false;
+            checkoutBtn.textContent = 'Ödemeyi Tamamla';
         }
     }
 
