@@ -1,6 +1,6 @@
-package com.betul.paymentmanagement.entity;
+package com.betul.productmanagement.entity;
 
-import com.betul.paymentmanagement.enums.PaymentStatus;
+import com.betul.productmanagement.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,10 +8,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
-@Table(name = "payment_transactions")
+@Table(name = "payment_transaction")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,6 +25,9 @@ public class PaymentTransaction {
     @Column(nullable = false)
     private Long orderId; // Hangi siparişe ait olduğunu belirtir
 
+    @Column(nullable = false)
+    private Long paymentServiceTransactionId; // paymentmanagement servisindeki transaction ID'si
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus status;
@@ -33,8 +36,7 @@ public class PaymentTransaction {
     private BigDecimal amount;
 
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    private String paymentGatewayReference; // Ödeme ağ geçidinden dönen referans
-
+    private String paymentGatewayReference; // Ödeme ağ geçidinden dönen referans (isteğe bağlı)
 }

@@ -2,53 +2,33 @@ package com.betul.paymentmanagement.service;
 
 import com.betul.paymentmanagement.dto.PaymentRequestDTO;
 import com.betul.paymentmanagement.dto.PaymentResponseDTO;
-import com.betul.paymentmanagement.entity.PaymentTransaction;
 import com.betul.paymentmanagement.enums.PaymentStatus;
-import com.betul.paymentmanagement.repository.PaymentTransactionRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.Random;
+import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class PaymentProcessingService {
 
-    private final PaymentTransactionRepository repository;
-
     public PaymentResponseDTO processPayment(PaymentRequestDTO request) {
-        // 1. Gelen isteğe göre bir transaction nesnesi oluştur ve PENDING olarak kaydet.
-        PaymentTransaction tx = PaymentTransaction.builder()
-                .orderId(request.getOrderId())
-                .amount(request.getAmount())
-                .status(PaymentStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .build();
-        repository.save(tx);
-
-        // 2. Ödeme ağ geçidiyle konuşmayı simüle et (şimdilik rastgele başarılı/başarısız yapalım)
-        // Gerçek bir projede burada banka veya iyzico gibi bir servise istek atılırdı.
         System.out.println("Processing payment for order: " + request.getOrderId());
+
+        // Simulate processing time
         try {
-            Thread.sleep(2000); // 2 saniye bekleterek işlemi simüle et
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
 
-        boolean paymentSuccess;
-        if (request.getPaymentStatus() != null) {
-            paymentSuccess = request.getPaymentStatus() == PaymentStatus.SUCCESS;
-        } else {
-            paymentSuccess = new Random().nextBoolean();
-        }
+        // Determine the final status from the request
+        PaymentStatus finalStatus = request.getPaymentStatus() != null ? request.getPaymentStatus() : PaymentStatus.FAILED;
 
-        // 3. Sonuca göre transaction'ı güncelle
-        tx.setStatus(paymentSuccess ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
-        PaymentTransaction savedTx = repository.save(tx);
+        System.out.println("Payment for order " + request.getOrderId() + " processed with status: " + finalStatus);
 
-        // 4. Cevabı oluştur ve dön
-        return new PaymentResponseDTO(savedTx.getId(), savedTx.getStatus(), "Payment processed.");
+        // Generate a random transaction ID for the response, since we have no database
+        long randomTransactionId = Math.abs(UUID.randomUUID().getMostSignificantBits());
+
+        // Create and return the response DTO
+        return new PaymentResponseDTO(randomTransactionId, finalStatus, "Payment processed by stateless service.");
     }
 }

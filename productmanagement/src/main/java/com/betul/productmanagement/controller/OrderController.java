@@ -27,6 +27,20 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<OrderDTO> completeOrder(@PathVariable Long id) {
+        User user = currentUserService.getCurrentUserOrThrow();
+        OrderDTO order = orderService.completeOrder(id, user);
+        return ResponseEntity.ok(order);
+    }
+
+    @PostMapping("/{id}/fail")
+    public ResponseEntity<OrderDTO> failOrder(@PathVariable Long id) {
+        User user = currentUserService.getCurrentUserOrThrow();
+        OrderDTO order = orderService.failOrder(id, user);
+        return ResponseEntity.ok(order);
+    }
+
     @GetMapping
     public ResponseEntity<Page<OrderDTO>> listMyOrders(@RequestParam(defaultValue = "0") int page,
                                                        @RequestParam(defaultValue = "10") int size) {
@@ -43,22 +57,6 @@ public class OrderController {
         if (!isOwner && !isAdmin) {
             return ResponseEntity.status(403).build();
         }
-        return ResponseEntity.ok(order);
-    }
-
-
-    //complete ve fail için purchase.html sayfasından gelen isteklere yanıt olarak çağıran /complete ve /fail URL'leri (endpoint'ler)
-    @PostMapping("/{id}/complete")
-    public ResponseEntity<OrderDTO> completeOrder(@PathVariable Long id) {
-        User user = currentUserService.getCurrentUserOrThrow();
-        OrderDTO order = orderService.completeOrder(id, user);
-        return ResponseEntity.ok(order);
-    }
-
-    @PostMapping("/{id}/fail")
-    public ResponseEntity<OrderDTO> failOrder(@PathVariable Long id) {
-        User user = currentUserService.getCurrentUserOrThrow();
-        OrderDTO order = orderService.failOrder(id, user);
         return ResponseEntity.ok(order);
     }
 } 
